@@ -1,0 +1,57 @@
+/********************************************************************************
+
+ * Interfacing MAX7219 LED dot matrix display with Arduino - Text scroll example.
+ * This is a free software with NO WARRANTY.
+ * https://simple-circuit.com/
+
+/********************************************************************************/
+
+#include <MD_Parola.h>     // include MajicDesigns Parola library
+#include <MD_MAX72xx.h>    // include MajicDesigns MAX72xx LED matrix library
+#include <SPI.h>           // include Arduino SPI library
+
+#define HARDWARE_TYPE MD_MAX72XX::FC16_HW   // this line defines our dot matrix hardware type (FC-16)
+#define MAX_DEVICES 4                       // define number of total cascaded modules
+
+#define CS_PIN    10   // define CS (Chip Select) pin
+
+MD_Parola display = MD_Parola(HARDWARE_TYPE, CS_PIN, MAX_DEVICES);
+
+#define POTPIN   A0   // define speed control potentiometer output pin connection
+
+uint8_t scrollSpeed = 150;    // set initial scroll speed, can be a value between 10 (max) and 150 (min)
+textEffect_t scrollEffect  = PA_SCROLL_LEFT;  // scroll direction, right-to-left direction
+textPosition_t scrollAlign = PA_LEFT;         // scroll align
+uint16_t scrollPause = 2000;                  // scroll pause in milliseconds
+
+// setup function
+void setup(void) 
+{
+  // initialize the dot matrix display
+  display.begin();
+   // set the intensity (brightness) of the display (choose a number between 0 and 15)
+  display.setIntensity(3);
+  // clear the whole display
+  display.displayClear();
+
+  // print text on the display
+  display.displayText("Emerson Ann Kiriakos", scrollAlign, scrollSpeed, scrollPause, scrollEffect, scrollEffect);
+}
+
+// main loop function
+void loop(void) 
+{ 
+  uint16_t an = analogRead(POTPIN);    // read analog data from potentiometer output
+
+  int16_t speed = map(an, 0, 1023, 150, 10);  // map previous value between 150 & 10 (min & max speed)
+
+  if ( speed != display.getSpeed() )   // check if speed changed
+    display.setSpeed(speed);           // set new scrolling speed
+
+  if (display.displayAnimate()) {    // animate the display
+    display.displayReset();          // reset the current animation
+  }
+
+}
+
+// end of code.
